@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <glm/glm.hpp>
+#include <vector>
 
 typedef struct Planeta {
     char nombre[20];
@@ -23,5 +24,7 @@ typedef struct Planeta {
 
 /* La usaremos para crear todos los planetas sin tener que meter los datos en el struct manualmente*/
 Planeta* crearPlaneta(char nombre[20], float tamanho, float distanciaAlSol, float velocidadTraslacion, float velocidadRotacion, float inclinacion, float posicion[3]);
+
+std::vector<Planeta*> inicializarPlanetas();
 
 #endif
