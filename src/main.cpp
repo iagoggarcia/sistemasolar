@@ -1,8 +1,14 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
+// estas dos hacen falta para el model y demás:
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include <iostream>
 #include "lecturaShader_0_9.h"
 #include "esfera.h"
+#include "planetas.h"
 
 void processInput(GLFWwindow* window);
 
@@ -15,7 +21,7 @@ extern GLuint setShaders(const char* nVertx, const char* nFrag);
 GLuint shaderProgram;
 
 // definimos los vaos que guardan y usan los vértices que nos dieron en otra
-// práctica para luego usarlos al crear un planeta o el sol
+// práctica para luego usarlos al crear los planetas
 unsigned int VAO_esfera;
 unsigned int VBO_esfera;
 
@@ -28,15 +34,15 @@ void crearEsfera() {
     glBindBuffer(GL_ARRAY_BUFFER, VBO_esfera);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_esfera), vertices_esfera, GL_STATIC_DRAW);
 
-    // normales
+    // normales (los 3 primeros valores float)
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(1);
 
-    // textura
+    // textura (los 2 siguientes valores float)
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(2);
 
-    // posición
+    // posición (los 3 últimos valores float)
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
     glEnableVertexAttribArray(0);
 
@@ -81,15 +87,17 @@ int main() {
     // Cargar shaders
     shaderProgram = setShaders("shaders/shader.vert", "shaders/shader.frag");
 
-    // Aquí después cargarás:
-    // - esfera
-    // - planetas
-    // - VAOs
+    // esto sirve para mandar la matriz de transformación al shader
+    GLuint modelLoc = glGetUniformLocation(shaderProgram, "model");
+    // esto es para saber a dónde mandar el color de cada planeta
+    GLuint colorLoc = glGetUniformLocation(shaderProgram, "color");
+
     crearEsfera();
+    // Aquí usamos la función que habías hecho ayer para guardar los planetas en el vector y usarlos en el bucle de debajo (para dibujarlos)
+    std::vector<Planeta*> planetas = inicializarPlanetas(VAO_esfera);
 
     // Loop principal
-    while (!glfwWindowShouldClose(window))
-    {
+    while (!glfwWindowShouldClose(window)) {
         processInput(window);
 
         // limpiar pantalla
@@ -97,11 +105,7 @@ int main() {
 
         glUseProgram(shaderProgram);
 
-        glBindVertexArray(VAO_esfera);
-        glDrawArrays(GL_TRIANGLES, 0, 1080);
-        // Aquí irán tus funciones:
-        // dibujarSol();
-        // dibujarPlanetas();
+        dibujarPlanetas(planetas, modelLoc, colorLoc);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
