@@ -1,4 +1,4 @@
-#include <glad/glad.h>
+#include <glad.h>
 #include <GLFW/glfw3.h>
 
 // estas dos hacen falta para el model y demás:
@@ -10,23 +10,25 @@
 #include "esfera.h"
 #include "planetas.h"
 
-void processInput(GLFWwindow* window);
+void processInput(GLFWwindow* window, std::vector<Planeta*>& planetas);
 
-// estas variables las usamos para controlar la camara orbital:
-// horz para girar alrededor del sistema en horizontal,
-// vert para subir o bajar el angulo de vision
-// y dist_zoom para acercarnos o alejarnos
-float horz = 0.0f;
-float vert = 0.3f;
-float dist_zoom = 2.5f;
 
 // Configuración ventana
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 800;
+const unsigned int SCR_WIDTH = 1000;
+const unsigned int SCR_HEIGHT = 1000;
+
+// para escoger el planeta que vamos a mirar dentro de la funcion processInput
+Planeta* planetaObjetivo = nullptr;
+float distanciaCamara = 2.0f;
+glm::vec3 direccionCamara = glm::normalize(glm::vec3(0.0f, 0.4f, 1.0f));
 
 // shaders
 extern GLuint setShaders(const char* nVertx, const char* nFrag);
 GLuint shaderProgram;
+
+void reescalarVentana(GLFWwindow* window, int width, int height) {
+    glViewport(0, 0, width, height);
+}
 
 // definimos los vaos que guardan y usan los vértices que nos dieron en otra
 // práctica para luego usarlos al crear los planetas
@@ -79,6 +81,7 @@ int main() {
         glfwTerminate();
         return -1;
     }
+    glfwSetFramebufferSizeCallback(window, reescalarVentana);
 
     glfwMakeContextCurrent(window);
 
@@ -111,39 +114,49 @@ int main() {
 
     // Loop principal
     while (!glfwWindowShouldClose(window)) {
-        processInput(window);
+        processInput(window, planetas);
 
-        // limpiar pantalla
+        actualizarMovimiento(planetas);
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glUseProgram(shaderProgram);
 
-        // aqui calculamos donde esta la camara en cada momento
-        // a partir del giro horizontal, el vertical y la distancia
-        glm::vec3 cameraPos;
-        cameraPos.x = dist_zoom * cos(vert) * cos(horz);
-        cameraPos.y = dist_zoom * sin(vert);
-        cameraPos.z = dist_zoom * cos(vert) * sin(horz);
+        glm::mat4 view;
 
-        // con lookAt construimos la vista de la camara:
-        // le decimos donde estamos, a donde miramos y cual es el arriba
-        // en este caso miramos siempre al centro del sistema
-        glm::mat4 view = glm::lookAt(
-            cameraPos,
-            glm::vec3(0.0f, 0.0f, 0.0f),
-            glm::vec3(0.0f, 1.0f, 0.0f)
-        );
+        if (planetaObjetivo != nullptr) {
+            glm::vec3 target(
+                planetaObjetivo->posicion[0],
+                planetaObjetivo->posicion[1],
+                planetaObjetivo->posicion[2]
+            );
 
-        // esta matriz hace que la escena se vea con perspectiva
-        // para que lo lejano se vea mas pequeño y no quede todo plano
+            glm::vec3 cameraPos = target + direccionCamara * distanciaCamara;
+
+            view = glm::lookAt(
+                cameraPos,
+                target,
+                glm::vec3(0.0f, 1.0f, 0.0f)
+            );
+        }
+        else {
+            view = glm::lookAt(
+                glm::vec3(10.0f, 3.0f, 8.0f),
+                glm::vec3(0.0f, 0.0f, 0.0f),
+                glm::vec3(0.0f, 1.0f, 0.0f)
+            );
+        }
+
+        int width, height;
+        glfwGetFramebufferSize(window, &width, &height);
+
         glm::mat4 projection = glm::perspective(
-            glm::radians(45.0f),
-            (float)SCR_WIDTH / (float)SCR_HEIGHT,
+            glm::radians(60.0f),
+            (float)width / (float)height,
             0.1f,
             100.0f
         );
 
-        // mandamos al shader la vista de la camara y la perspectiva
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
         glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
@@ -152,52 +165,23 @@ int main() {
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-
-    glDeleteProgram(shaderProgram);
-    glfwTerminate();
-
-    return 0;
 }
 
-void processInput(GLFWwindow* window)
-{
+void processInput(GLFWwindow* window, std::vector<Planeta*>& planetas){
     // esta velocidad controla lo rapido que giramos con las flechas
     float velocidadAngular = 0.02f;
-
-    // esta controla lo rapido que nos acercamos o alejamos
-    float velocidadZoom = 0.03f;
 
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
-    // con izquierda y derecha giramos alrededor del sistema
-    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-        horz -= velocidadAngular;
+    // con la tecla del 1 enfocamos marte
+    if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS){
+        planetaObjetivo = planetas[4];
+        distanciaCamara = 0.4f;
+    }
 
-    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-        horz += velocidadAngular;
-
-    // con arriba y abajo cambiamos la altura desde la que lo estamos viendo
-    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-        vert += velocidadAngular;
-
-    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-        vert -= velocidadAngular;
-
-    // con W y S hacemos zoom
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        dist_zoom -= velocidadZoom;
-
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        dist_zoom += velocidadZoom;
-
-    // limitamos el angulo vertical para que la camara no se coloque
-    // en una posicion rara justo por encima o por debajo
-    if (vert > 1.5f) vert = 1.5f;
-    if (vert < -1.5f) vert = -1.5f;
-
-    // tambien limitamos el zoom para no meternos demasiado dentro
-    // ni alejarnos tanto que deje de tener sentido
-    if (dist_zoom < 0.3f) dist_zoom = 0.3f;
-    if (dist_zoom > 20.0f) dist_zoom = 20.0f;
+    if(glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS){
+        planetaObjetivo = nullptr;
+        distanciaCamara = 2.0f;
+    }
 }
