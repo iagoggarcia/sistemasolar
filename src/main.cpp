@@ -12,6 +12,14 @@
 
 void processInput(GLFWwindow* window);
 
+// estas variables las usamos para controlar la camara orbital:
+// horz para girar alrededor del sistema en horizontal,
+// vert para subir o bajar el angulo de vision
+// y dist_zoom para acercarnos o alejarnos
+float horz = 0.0f;
+float vert = 0.3f;
+float dist_zoom = 2.5f;
+
 // Configuración ventana
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 800;
@@ -92,6 +100,11 @@ int main() {
     // esto es para saber a dónde mandar el color de cada planeta
     GLuint colorLoc = glGetUniformLocation(shaderProgram, "color");
 
+    // estas dos localizaciones nuevas son para pasarle al shader
+    // la camara y la perspectiva con la que vamos a ver la escena
+    GLuint viewLoc = glGetUniformLocation(shaderProgram, "view");
+    GLuint projectionLoc = glGetUniformLocation(shaderProgram, "projection");
+
     crearEsfera();
     // Aquí usamos la función que habías hecho ayer para guardar los planetas en el vector y usarlos en el bucle de debajo (para dibujarlos)
     std::vector<Planeta*> planetas = inicializarPlanetas(VAO_esfera);
@@ -104,6 +117,35 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glUseProgram(shaderProgram);
+
+        // aqui calculamos donde esta la camara en cada momento
+        // a partir del giro horizontal, el vertical y la distancia
+        glm::vec3 cameraPos;
+        cameraPos.x = dist_zoom * cos(vert) * cos(horz);
+        cameraPos.y = dist_zoom * sin(vert);
+        cameraPos.z = dist_zoom * cos(vert) * sin(horz);
+
+        // con lookAt construimos la vista de la camara:
+        // le decimos donde estamos, a donde miramos y cual es el arriba
+        // en este caso miramos siempre al centro del sistema
+        glm::mat4 view = glm::lookAt(
+            cameraPos,
+            glm::vec3(0.0f, 0.0f, 0.0f),
+            glm::vec3(0.0f, 1.0f, 0.0f)
+        );
+
+        // esta matriz hace que la escena se vea con perspectiva
+        // para que lo lejano se vea mas pequeño y no quede todo plano
+        glm::mat4 projection = glm::perspective(
+            glm::radians(45.0f),
+            (float)SCR_WIDTH / (float)SCR_HEIGHT,
+            0.1f,
+            100.0f
+        );
+
+        // mandamos al shader la vista de la camara y la perspectiva
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+        glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
         dibujarPlanetas(planetas, modelLoc, colorLoc);
 
@@ -119,6 +161,43 @@ int main() {
 
 void processInput(GLFWwindow* window)
 {
+    // esta velocidad controla lo rapido que giramos con las flechas
+    float velocidadAngular = 0.02f;
+
+    // esta controla lo rapido que nos acercamos o alejamos
+    float velocidadZoom = 0.03f;
+
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+
+    // con izquierda y derecha giramos alrededor del sistema
+    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+        horz -= velocidadAngular;
+
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+        horz += velocidadAngular;
+
+    // con arriba y abajo cambiamos la altura desde la que lo estamos viendo
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+        vert += velocidadAngular;
+
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+        vert -= velocidadAngular;
+
+    // con W y S hacemos zoom
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        dist_zoom -= velocidadZoom;
+
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        dist_zoom += velocidadZoom;
+
+    // limitamos el angulo vertical para que la camara no se coloque
+    // en una posicion rara justo por encima o por debajo
+    if (vert > 1.5f) vert = 1.5f;
+    if (vert < -1.5f) vert = -1.5f;
+
+    // tambien limitamos el zoom para no meternos demasiado dentro
+    // ni alejarnos tanto que deje de tener sentido
+    if (dist_zoom < 0.3f) dist_zoom = 0.3f;
+    if (dist_zoom > 20.0f) dist_zoom = 20.0f;
 }
