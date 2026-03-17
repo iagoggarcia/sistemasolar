@@ -27,7 +27,7 @@ typedef struct Planeta {
 }Planeta;
 
 /* La usaremos para crear todos los planetas sin tener que meter los datos en el struct manualmente*/
-Planeta* crearPlaneta(const char* nombre, float tamanho, float distancia, float velTras, float velRot, glm::vec3 color, GLuint VAO);
+Planeta *crearPlaneta(const char *nombre, float tamanho, float py, float pz, float distancia, float velTras, float velRot, glm::vec3 color, GLuint VAO);
 
 /* Función que usamos para definir y dar valores iniciales (específicos) a los planetas que conforman el sistema.
     Argumentos:

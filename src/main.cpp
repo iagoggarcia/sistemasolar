@@ -9,8 +9,9 @@
 #include "lecturaShader_0_9.h"
 #include "esfera.h"
 #include "planetas.h"
+#include "satelites.h"
 
-void processInput(GLFWwindow* window, std::vector<Planeta*>& planetas);
+void processInput(GLFWwindow* window, std::vector<Planeta*>& planetas, std::vector<Satelite*>& satelites);
 
 
 // Configuración ventana
@@ -111,12 +112,14 @@ int main() {
     crearEsfera();
     // Aquí usamos la función que habías hecho ayer para guardar los planetas en el vector y usarlos en el bucle de debajo (para dibujarlos)
     std::vector<Planeta*> planetas = inicializarPlanetas(VAO_esfera);
+    std::vector<Satelite*> satelites = inicializarSatelites(VAO_esfera);
 
     // Loop principal
     while (!glfwWindowShouldClose(window)) {
-        processInput(window, planetas);
+        processInput(window, planetas, satelites);
 
         actualizarMovimiento(planetas);
+        actualizarMovimientoSat(satelites,planetas[3]);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -161,13 +164,14 @@ int main() {
         glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
         dibujarPlanetas(planetas, modelLoc, colorLoc);
+        dibujarSatelites(satelites, modelLoc, colorLoc);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 }
 
-void processInput(GLFWwindow* window, std::vector<Planeta*>& planetas){
+void processInput(GLFWwindow* window, std::vector<Planeta*>& planetas, std::vector<Satelite*>& satelites){
     // esta velocidad controla lo rapido que giramos con las flechas
     float velocidadAngular = 0.02f;
 
@@ -180,6 +184,7 @@ void processInput(GLFWwindow* window, std::vector<Planeta*>& planetas){
         distanciaCamara = 0.4f;
     }
 
+    // tecla 4 para volver a la camara inicial
     if(glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS){
         planetaObjetivo = nullptr;
         distanciaCamara = 2.0f;
