@@ -31,24 +31,32 @@ Planeta *crearPlaneta(const char *nombre, float tamanho, float py, float pz, flo
     planeta->posicion[1] = py;
     planeta->posicion[2] = pz;
 
+    if (distancia > 0.0f) {
+        planeta->VAOorbita = crearVAOorbita(distancia);
+        planeta->numVerticesOrbita = 100;
+    }
+    else { // si es el sol no va a tener órbita
+        planeta->VAOorbita = 0;
+        planeta->numVerticesOrbita = 0;
+    }
+
     return planeta;
 }
 
 std::vector<Planeta *> inicializarPlanetas(GLuint VAO_esfera)
 {
     std::vector<Planeta *> planetas;
-    // Tamaños y distancias ajustados para que todo el sistema se vea en pantalla
-    planetas.push_back(crearPlaneta("Sol",      0.50f, 0.0f, 0.0f, 0.0f,  0.0f, 0.02f, glm::vec3(1.0f, 0.8f, 0.0f), VAO_esfera));
+    planetas.push_back(crearPlaneta("Sol",      0.50f, 0.0f, 0.0f, 0.0f,  0.0f,   0.015f, glm::vec3(1.0f, 0.8f, 0.0f), VAO_esfera));
 
-    planetas.push_back(crearPlaneta("Mercurio", 0.05f, 0.0f, 0.0f, 1.2f,  0.04f, 0.02f, glm::vec3(0.6f, 0.6f, 0.6f), VAO_esfera));
-    planetas.push_back(crearPlaneta("Venus",    0.08f, 0.0f, 0.0f, 1.8f,  0.03f, 0.02f, glm::vec3(0.9f, 0.7f, 0.2f), VAO_esfera));
-    planetas.push_back(crearPlaneta("Tierra",   0.09f, 0.0f, 0.0f, 2.4f,  0.025f,0.03f, glm::vec3(0.2f, 0.4f, 1.0f), VAO_esfera));
-    planetas.push_back(crearPlaneta("Marte",    0.07f, 0.0f, 0.0f, 3.0f,  0.02f, 0.03f, glm::vec3(0.8f, 0.3f, 0.1f), VAO_esfera));
+    planetas.push_back(crearPlaneta("Mercurio", 0.05f, 0.0f, 0.0f, 1.2f,  0.028f, 0.015f, glm::vec3(0.6f, 0.6f, 0.6f), VAO_esfera));
+    planetas.push_back(crearPlaneta("Venus",    0.08f, 0.0f, 0.0f, 1.8f,  0.022f, 0.015f, glm::vec3(0.9f, 0.7f, 0.2f), VAO_esfera));
+    planetas.push_back(crearPlaneta("Tierra",   0.09f, 0.0f, 0.0f, 2.4f,  0.018f, 0.022f, glm::vec3(0.2f, 0.4f, 1.0f), VAO_esfera));
+    planetas.push_back(crearPlaneta("Marte",    0.07f, 0.0f, 0.0f, 3.0f,  0.014f, 0.022f, glm::vec3(0.8f, 0.3f, 0.1f), VAO_esfera));
 
-    planetas.push_back(crearPlaneta("Júpiter",  0.20f, 0.0f, 0.0f, 3.8f,  0.015f,0.04f, glm::vec3(0.8f, 0.6f, 0.4f), VAO_esfera));
-    planetas.push_back(crearPlaneta("Saturno",  0.17f, 0.0f, 0.0f, 4.7f,  0.012f,0.04f, glm::vec3(0.9f, 0.8f, 0.5f), VAO_esfera));
-    planetas.push_back(crearPlaneta("Urano",    0.14f, 0.0f, 0.0f, 5.5f,  0.009f,0.04f, glm::vec3(0.5f, 0.8f, 1.0f), VAO_esfera));
-    planetas.push_back(crearPlaneta("Neptuno",  0.14f, 0.0f, 0.0f, 6.3f,  0.007f,0.04f, glm::vec3(0.2f, 0.3f, 0.9f), VAO_esfera));
+    planetas.push_back(crearPlaneta("Júpiter",  0.20f, 0.0f, 0.0f, 3.8f,  0.010f, 0.028f, glm::vec3(0.8f, 0.6f, 0.4f), VAO_esfera));
+    planetas.push_back(crearPlaneta("Saturno",  0.17f, 0.0f, 0.0f, 4.7f,  0.008f, 0.028f, glm::vec3(0.9f, 0.8f, 0.5f), VAO_esfera));
+    planetas.push_back(crearPlaneta("Urano",    0.14f, 0.0f, 0.0f, 5.5f,  0.006f, 0.028f, glm::vec3(0.5f, 0.8f, 1.0f), VAO_esfera));
+    planetas.push_back(crearPlaneta("Neptuno",  0.14f, 0.0f, 0.0f, 6.3f,  0.0045f,0.028f, glm::vec3(0.2f, 0.3f, 0.9f), VAO_esfera));
 
     return planetas;
 }
@@ -107,5 +115,61 @@ void actualizarMovimiento(std::vector<Planeta*>& planetas)
         // calculamos la posición en la órbita circular alrededor del sol
         planeta->posicion[0] = planeta->distanciaAlSol * cos(ang);
         planeta->posicion[2] = planeta->distanciaAlSol * sin(ang);
+    }
+}
+
+std::vector<float> crearVerticesOrbita(float radio) {
+    std::vector<float> vertices;
+    int segmentos = 100;
+
+    for (int i = 0; i < segmentos; i++) {
+        float angulo = 2.0f * M_PI * i / segmentos;
+
+        float x = radio * cos(angulo);
+        float y = 0.0f;
+        float z = radio * sin(angulo);
+
+        vertices.push_back(x);
+        vertices.push_back(y);
+        vertices.push_back(z);
+    }
+
+    return vertices;
+}
+
+
+GLuint crearVAOorbita(float radio) {
+    std::vector<float> vertices = crearVerticesOrbita(radio);
+    int segmentos = 100;
+    GLuint VAO, VBO;
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    return VAO;
+}
+
+
+void dibujarOrbitas(std::vector<Planeta*>& planetas, GLuint modelLoc, GLuint colorLoc) {
+    for (Planeta* planeta : planetas) {
+        if (planeta->distanciaAlSol <= 0.0f) continue; // saltamos el sol porque no se traslada
+
+        glm::mat4 model = glm::mat4(1.0f);
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
+        glm::vec3 colorOrbita(0.7f, 0.7f, 0.7f);
+        glUniform3fv(colorLoc, 1, glm::value_ptr(colorOrbita));
+
+        glBindVertexArray(planeta->VAOorbita);
+        glDrawArrays(GL_LINE_LOOP, 0, planeta->numVerticesOrbita);
     }
 }

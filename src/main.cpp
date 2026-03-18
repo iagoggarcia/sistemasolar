@@ -20,8 +20,11 @@ const unsigned int SCR_HEIGHT = 1000;
 
 // para escoger el planeta que vamos a mirar dentro de la funcion processInput
 Planeta* planetaObjetivo = nullptr;
+Satelite* sateliteObjetivo = nullptr;
 float distanciaCamara = 2.0f;
 glm::vec3 direccionCamara = glm::normalize(glm::vec3(0.0f, 0.4f, 1.0f));
+bool vistaDesdeLuna = false;
+bool vistaDesdeTierra = false;
 
 // shaders
 extern GLuint setShaders(const char* nVertx, const char* nFrag);
@@ -127,14 +130,44 @@ int main() {
 
         glm::mat4 view;
 
-        if (planetaObjetivo != nullptr) {
-            glm::vec3 target(
-                planetaObjetivo->posicion[0],
-                planetaObjetivo->posicion[1],
-                planetaObjetivo->posicion[2]
-            );
+        if (planetaObjetivo != nullptr || sateliteObjetivo != nullptr) {
+            glm::vec3 target;
 
-            glm::vec3 cameraPos = target + direccionCamara * distanciaCamara;
+            if (planetaObjetivo != nullptr) {
+                target = glm::vec3(
+                    planetaObjetivo->posicion[0],
+                    planetaObjetivo->posicion[1],
+                    planetaObjetivo->posicion[2]
+                );
+            }
+            else {
+                target = glm::vec3(
+                    sateliteObjetivo->posicion[0],
+                    sateliteObjetivo->posicion[1],
+                    sateliteObjetivo->posicion[2]
+                );
+            }
+
+            glm::vec3 cameraPos;
+
+            // Tuve que añadir esto porque desde la luna la vista es distinta:
+            if (vistaDesdeLuna) {
+                cameraPos = glm::vec3(
+                    satelites[0]->posicion[0],
+                    satelites[0]->posicion[1],
+                    satelites[0]->posicion[2]
+                );
+            }
+            else if (vistaDesdeTierra) {
+                cameraPos = glm::vec3(
+                    planetas[3]->posicion[0],
+                    planetas[3]->posicion[1],
+                    planetas[3]->posicion[2]
+                );
+            }
+            else {
+                cameraPos = target + direccionCamara * distanciaCamara;
+            }
 
             view = glm::lookAt(
                 cameraPos,
@@ -163,6 +196,7 @@ int main() {
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
         glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
+        dibujarOrbitas(planetas, modelLoc, colorLoc);
         dibujarPlanetas(planetas, modelLoc, colorLoc);
         dibujarSatelites(satelites, modelLoc, colorLoc);
 
@@ -181,12 +215,32 @@ void processInput(GLFWwindow* window, std::vector<Planeta*>& planetas, std::vect
     // con la tecla del 1 enfocamos marte
     if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS){
         planetaObjetivo = planetas[4];
+        sateliteObjetivo = nullptr;
         distanciaCamara = 0.4f;
+        vistaDesdeLuna = false; // si no, después de presionar 2 y darle a 1, se enfoca a marte desde la luna y eso no lo queremos
+        vistaDesdeTierra = false;
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
+        planetaObjetivo = planetas[3];
+        sateliteObjetivo = nullptr;
+        vistaDesdeLuna = true;
+        vistaDesdeTierra = false;
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
+        planetaObjetivo = nullptr;
+        sateliteObjetivo = satelites[1];
+        vistaDesdeLuna = false;
+        vistaDesdeTierra = true;
     }
 
     // tecla 4 para volver a la camara inicial
     if(glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS){
         planetaObjetivo = nullptr;
+        sateliteObjetivo = nullptr;
         distanciaCamara = 2.0f;
+        vistaDesdeLuna = false;
+        vistaDesdeTierra = false;
     }
 }

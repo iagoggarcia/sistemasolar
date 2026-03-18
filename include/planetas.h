@@ -24,6 +24,10 @@ typedef struct Planeta {
 
     GLuint VAO; // puntero al VAO
 
+    // para dibujar las órbitas usamos un nuevo VAO:
+    GLuint VAOorbita;
+    int numVerticesOrbita;
+
 }Planeta;
 
 /* La usaremos para crear todos los planetas sin tener que meter los datos en el struct manualmente*/
@@ -41,5 +45,11 @@ std::vector<Planeta*> inicializarPlanetas(GLuint VAO_esfera);
 void dibujarPlanetas(std::vector<Planeta*>& planetas, GLuint modelLoc, GLuint colorLoc);
 
 void actualizarMovimiento(std::vector<Planeta*>& planetas);
+
+std::vector<float> crearVerticesOrbita(float radio);
+
+GLuint crearVAOorbita(float radio);
+
+void dibujarOrbitas(std::vector<Planeta*>& planetas, GLuint modelLoc, GLuint colorLoc);
 
 #endif

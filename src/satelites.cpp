@@ -38,8 +38,8 @@ Satelite *crearSatelite(const char *nombre, float tamanho, float py, float pz, f
 std::vector<Satelite *> inicializarSatelites(GLuint VAO_esfera){
     std::vector<Satelite*> satelites;
 
-    satelites.push_back(crearSatelite("Luna", 0.03f, 0.0f, 0.0f, 0.22f, 0.06f, 0.02f, glm::vec3(0.75f, 0.75f, 0.75f), VAO_esfera));
-    satelites.push_back(crearSatelite("ISS", 0.01f, 0.0f, 0.0f, 0.12f, 0.12f, 0.03f, glm::vec3(0.9f, 0.9f, 0.95f), VAO_esfera));
+    satelites.push_back(crearSatelite("Luna", 0.03f, 0.0f, 0.0f, 0.22f, 0.035f, 0.015f, glm::vec3(0.75f, 0.75f, 0.75f), VAO_esfera));
+    satelites.push_back(crearSatelite("ISS",  0.01f, 0.0f, 0.0f, 0.12f, 0.075f, 0.022f, glm::vec3(0.9f, 0.9f, 0.95f), VAO_esfera));
 
     return satelites;
 }

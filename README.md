@@ -14,20 +14,17 @@ Pequeña simulación de un sistema solar desarrollada con **OpenGL** como parte 
 - ✔️ Modularización del código separando:
   - `main.cpp` → control del programa
   - `planetas.cpp / planetas.h` → lógica de los planetas
+  - `satelites.cpp / satelites.h` → lógica de los satélites
 - ✔️ Renderizado de todos los planetas mediante una función dedicada (`dibujarPlanetas`).
-- ✔️ Implementar **sistema de cámara** (`view` y `projection`) para visualizar correctamente el sistema solar.
-- ✔️ Ajustar **tamaños y distancias** una vez se implemente la cámara.
-- ✔️ Implementar **movimiento orbital de los planetas** usando:
+- ✔️ Implementación del **sistema de cámara** para visualizar correctamente el sistema solar.
+- ✔️ Implementación de **movimiento orbital de los planetas** usando:
   - ángulos de traslación
   - velocidades de rotación y traslación.
-
+- ✔️ Añadir **satélites**:
+  - 🌙 Luna
+  - 🛰️ Estación Espacial Internacional (ISS).
+- Representación visual de **órbitas**.
 ---
 
 # 🚧 Funcionalidades pendientes
-
-- 🔲 Añadir **satélites**:
-  - 🌙 Luna
-  - 🛰️ Estación Espacial Internacional (ISS).
-- 🔲 Representar visualmente **órbitas y anillos planetarios**.
----
-# 📂 Estructura actual del proyecto
+- 🔲 Representar visualmente **anillos planetarios**.
