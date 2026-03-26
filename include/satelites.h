@@ -36,6 +36,6 @@ std::vector<Satelite*> inicializarSatelites(GLuint VAO_esfera);
 */
 void dibujarSatelites(std::vector<Satelite*>& satelites, GLuint modelLoc, GLuint colorLoc);
 
-void actualizarMovimientoSat(std::vector<Satelite*>& satelites, Planeta* tierra);
+void actualizarMovimientoSat(std::vector<Satelite*>& satelites, Planeta* tierra, float deltaTime);
 
 #endif

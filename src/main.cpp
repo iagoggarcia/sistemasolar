@@ -10,21 +10,15 @@
 #include "esfera.h"
 #include "planetas.h"
 #include "satelites.h"
-
-void processInput(GLFWwindow* window, std::vector<Planeta*>& planetas, std::vector<Satelite*>& satelites);
+#include "camara.h"
 
 
 // Configuración ventana
 const unsigned int SCR_WIDTH = 1000;
 const unsigned int SCR_HEIGHT = 1000;
 
-// para escoger el planeta que vamos a mirar dentro de la funcion processInput
-Planeta* planetaObjetivo = nullptr;
-Satelite* sateliteObjetivo = nullptr;
-float distanciaCamara = 2.0f;
-glm::vec3 direccionCamara = glm::normalize(glm::vec3(0.0f, 0.4f, 1.0f));
-bool vistaDesdeLuna = false;
-bool vistaDesdeTierra = false;
+float deltaTime = 0.0f;
+float ultimoFrame = 0.0f;
 
 // shaders
 extern GLuint setShaders(const char* nVertx, const char* nFrag);
@@ -36,33 +30,9 @@ void reescalarVentana(GLFWwindow* window, int width, int height) {
 
 // definimos los vaos que guardan y usan los vértices que nos dieron en otra
 // práctica para luego usarlos al crear los planetas
-unsigned int VAO_esfera;
-unsigned int VBO_esfera;
+GLuint VAO_esfera;
+GLuint VBO_esfera;
 
-void crearEsfera() {
-    glGenVertexArrays(1, &VAO_esfera);
-    glGenBuffers(1, &VBO_esfera);
-
-    glBindVertexArray(VAO_esfera);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO_esfera);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_esfera), vertices_esfera, GL_STATIC_DRAW);
-
-    // normales (los 3 primeros valores float)
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(1);
-
-    // textura (los 2 siguientes valores float)
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(2);
-
-    // posición (los 3 últimos valores float)
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
-    glEnableVertexAttribArray(0);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-}
 
 void openGlInit() {
     glClearDepth(1.0f);
@@ -112,76 +82,27 @@ int main() {
     GLuint viewLoc = glGetUniformLocation(shaderProgram, "view");
     GLuint projectionLoc = glGetUniformLocation(shaderProgram, "projection");
 
-    crearEsfera();
+    crearEsfera(VAO_esfera, VBO_esfera);
     // Aquí usamos la función que habías hecho ayer para guardar los planetas en el vector y usarlos en el bucle de debajo (para dibujarlos)
     std::vector<Planeta*> planetas = inicializarPlanetas(VAO_esfera);
     std::vector<Satelite*> satelites = inicializarSatelites(VAO_esfera);
 
     // Loop principal
     while (!glfwWindowShouldClose(window)) {
+        float tiempoActual = glfwGetTime();
+        deltaTime = tiempoActual - ultimoFrame;
+        ultimoFrame = tiempoActual;
+
         processInput(window, planetas, satelites);
 
-        actualizarMovimiento(planetas);
-        actualizarMovimientoSat(satelites,planetas[3]);
+        actualizarMovimiento(planetas, deltaTime);
+        actualizarMovimientoSat(satelites,planetas[3], deltaTime);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glUseProgram(shaderProgram);
 
-        glm::mat4 view;
-
-        if (planetaObjetivo != nullptr || sateliteObjetivo != nullptr) {
-            glm::vec3 target;
-
-            if (planetaObjetivo != nullptr) {
-                target = glm::vec3(
-                    planetaObjetivo->posicion[0],
-                    planetaObjetivo->posicion[1],
-                    planetaObjetivo->posicion[2]
-                );
-            }
-            else {
-                target = glm::vec3(
-                    sateliteObjetivo->posicion[0],
-                    sateliteObjetivo->posicion[1],
-                    sateliteObjetivo->posicion[2]
-                );
-            }
-
-            glm::vec3 cameraPos;
-
-            // Tuve que añadir esto porque desde la luna la vista es distinta:
-            if (vistaDesdeLuna) {
-                cameraPos = glm::vec3(
-                    satelites[0]->posicion[0],
-                    satelites[0]->posicion[1],
-                    satelites[0]->posicion[2]
-                );
-            }
-            else if (vistaDesdeTierra) {
-                cameraPos = glm::vec3(
-                    planetas[3]->posicion[0],
-                    planetas[3]->posicion[1],
-                    planetas[3]->posicion[2]
-                );
-            }
-            else {
-                cameraPos = target + direccionCamara * distanciaCamara;
-            }
-
-            view = glm::lookAt(
-                cameraPos,
-                target,
-                glm::vec3(0.0f, 1.0f, 0.0f)
-            );
-        }
-        else {
-            view = glm::lookAt(
-                glm::vec3(10.0f, 3.0f, 8.0f),
-                glm::vec3(0.0f, 0.0f, 0.0f),
-                glm::vec3(0.0f, 1.0f, 0.0f)
-            );
-        }
+        glm::mat4 view = obtenerVista(planetas, satelites);
 
         int width, height;
         glfwGetFramebufferSize(window, &width, &height);
@@ -202,45 +123,5 @@ int main() {
 
         glfwSwapBuffers(window);
         glfwPollEvents();
-    }
-}
-
-void processInput(GLFWwindow* window, std::vector<Planeta*>& planetas, std::vector<Satelite*>& satelites){
-    // esta velocidad controla lo rapido que giramos con las flechas
-    float velocidadAngular = 0.02f;
-
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
-
-    // con la tecla del 1 enfocamos marte
-    if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS){
-        planetaObjetivo = planetas[4];
-        sateliteObjetivo = nullptr;
-        distanciaCamara = 0.4f;
-        vistaDesdeLuna = false; // si no, después de presionar 2 y darle a 1, se enfoca a marte desde la luna y eso no lo queremos
-        vistaDesdeTierra = false;
-    }
-
-    if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
-        planetaObjetivo = planetas[3];
-        sateliteObjetivo = nullptr;
-        vistaDesdeLuna = true;
-        vistaDesdeTierra = false;
-    }
-
-    if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
-        planetaObjetivo = nullptr;
-        sateliteObjetivo = satelites[1];
-        vistaDesdeLuna = false;
-        vistaDesdeTierra = true;
-    }
-
-    // tecla 4 para volver a la camara inicial
-    if(glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS){
-        planetaObjetivo = nullptr;
-        sateliteObjetivo = nullptr;
-        distanciaCamara = 2.0f;
-        vistaDesdeLuna = false;
-        vistaDesdeTierra = false;
     }
 }

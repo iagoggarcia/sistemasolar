@@ -11,7 +11,7 @@ OBJ_DIR = obj
 
 TARGET = sistemaSolar
 
-CPP_SOURCES = $(SRC_DIR)/main.cpp $(SRC_DIR)/planetas.cpp $(SRC_DIR)/satelites.cpp
+CPP_SOURCES = $(SRC_DIR)/main.cpp $(SRC_DIR)/planetas.cpp $(SRC_DIR)/satelites.cpp $(SRC_DIR)/camara.cpp $(SRC_DIR)/esfera.cpp 
 C_SOURCES = $(SRC_DIR)/glad.c
 
 CPP_OBJECTS = $(CPP_SOURCES:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
