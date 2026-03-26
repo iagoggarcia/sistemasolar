@@ -26,5 +26,4 @@ Pequeña simulación de un sistema solar desarrollada con **OpenGL** como parte 
 - Representación visual de **órbitas**.
 ---
 
-# 🚧 Funcionalidades pendientes
-- 🔲 Representar visualmente **anillos planetarios**.
+![Sistema solar](ss.png)
