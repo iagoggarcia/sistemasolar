@@ -44,7 +44,7 @@ std::vector<Planeta*> inicializarPlanetas(GLuint VAO_esfera);
 */
 void dibujarPlanetas(std::vector<Planeta*>& planetas, GLuint modelLoc, GLuint colorLoc);
 
-void actualizarMovimiento(std::vector<Planeta*>& planetas);
+void actualizarMovimiento(std::vector<Planeta*>& planetas, float deltaTime);
 
 std::vector<float> crearVerticesOrbita(float radio);
 
