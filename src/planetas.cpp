@@ -6,6 +6,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <cmath>
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 Planeta *crearPlaneta(const char *nombre, float tamanho, float py, float pz, float distancia, float velTras, float velRot, glm::vec3 color, GLuint VAO)
 {

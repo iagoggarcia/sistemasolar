@@ -58,6 +58,7 @@ int main() {
     glfwSetFramebufferSizeCallback(window, reescalarVentana);
 
     glfwMakeContextCurrent(window);
+    glfwSwapInterval(1);
 
     // Inicializar GLAD
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -83,6 +84,7 @@ int main() {
     GLuint projectionLoc = glGetUniformLocation(shaderProgram, "projection");
 
     crearEsfera(VAO_esfera, VBO_esfera);
+
     // Aquí usamos la función que habías hecho ayer para guardar los planetas en el vector y usarlos en el bucle de debajo (para dibujarlos)
     std::vector<Planeta*> planetas = inicializarPlanetas(VAO_esfera);
     std::vector<Satelite*> satelites = inicializarSatelites(VAO_esfera);
@@ -93,10 +95,10 @@ int main() {
         deltaTime = tiempoActual - ultimoFrame;
         ultimoFrame = tiempoActual;
 
-        processInput(window, planetas, satelites);
+        processInput(window, planetas, satelites, deltaTime);
 
         actualizarMovimiento(planetas, deltaTime);
-        actualizarMovimientoSat(satelites,planetas[3], deltaTime);
+        actualizarMovimientoSat(satelites, planetas[3], deltaTime);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -124,4 +126,7 @@ int main() {
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+
+    glfwTerminate();
+    return 0;
 }

@@ -70,9 +70,9 @@ glm::mat4 obtenerVista(std::vector<Planeta*>& planetas, std::vector<Satelite*>& 
     return view;
 }
 
-void processInput(GLFWwindow* window, std::vector<Planeta*>& planetas, std::vector<Satelite*>& satelites){
-    float velocidadAngular = 0.02f;
-    float velocidadMovimiento = 0.08f;
+void processInput(GLFWwindow* window, std::vector<Planeta*>& planetas, std::vector<Satelite*>& satelites, float deltaTime) {
+    float velocidadAngular = 1.8f * deltaTime;
+    float velocidadMovimiento = 6.0f * deltaTime;
 
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);

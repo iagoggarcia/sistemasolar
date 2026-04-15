@@ -20,7 +20,7 @@ extern glm::vec3 direccionCamaraGeneral;
 extern glm::vec3 upCamaraGeneral;
 
 // Función que analiza qué teclas se tocan para ajustar la posición de la cámara y la vista
-void processInput(GLFWwindow* window, std::vector<Planeta*>& planetas, std::vector<Satelite*>& satelites);
+void processInput(GLFWwindow* window, std::vector<Planeta*>& planetas, std::vector<Satelite*>& satelites, float deltaTime);
 
 glm::mat4 obtenerVista(std::vector<Planeta*>& planetas, std::vector<Satelite*>& satelites);
 
