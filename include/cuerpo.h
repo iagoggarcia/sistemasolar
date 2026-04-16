@@ -22,16 +22,17 @@ struct CuerpoCeleste {
     GLuint VAO;
     GLuint VAOorbita;
     int numVerticesOrbita;
+    float inclinacionOrbita;
 
     CuerpoCeleste* padre; // va a ser nulo si orbita el sol
 };
 
 void actualizarMovimiento(std::vector<CuerpoCeleste*>& cuerpos, float deltaTime, float factorVelocidad);
 std::vector<CuerpoCeleste*> inicializarCuerpos(GLuint VAO_esfera);
-CuerpoCeleste* crearCuerpo(const char* nombre, float tamanho, float velTras, float velRot, float distancia, glm::vec3 color, GLuint VAO, CuerpoCeleste* padre);
+CuerpoCeleste* crearCuerpo(const char* nombre, float tamanho, float velTras, float velRot, float distancia, float inclinacionOrbita, glm::vec3 color, GLuint VAO, CuerpoCeleste* padre);
 std::vector<float> crearVerticesOrbita(float radio);
 GLuint crearVAOorbita(float radio);
-void dibujarOrbitas(std::vector<CuerpoCeleste*>& cuerpos, GLuint modelLoc, GLuint colorLoc);
-void dibujarCuerpos(std::vector<CuerpoCeleste*>& cuerpos, GLuint modelLoc, GLuint colorLoc);
+void dibujarOrbitas(std::vector<CuerpoCeleste*>& cuerpos, GLuint modelLoc, GLuint objectColorLoc);
+void dibujarCuerpos(std::vector<CuerpoCeleste*>& cuerpos, GLuint modelLoc, GLuint objectColorLoc, GLuint esSolLoc);
 
 #endif

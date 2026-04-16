@@ -3,8 +3,21 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+extern bool luzEncendida;
+bool teclaIPulsadaAntes = false;
+
 void cerrarVentanaSiEsc(GLFWwindow* window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(window, true);
+}
+
+void procesarTeclaLuz(GLFWwindow* window) {
+    bool teclaIPulsadaAhora = (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS);
+
+    if (teclaIPulsadaAhora && !teclaIPulsadaAntes) {
+        luzEncendida = !luzEncendida;
+    }
+
+    teclaIPulsadaAntes = teclaIPulsadaAhora;
 }
 
 void procesarTeclaOrbitas(GLFWwindow* window) {
@@ -117,4 +130,5 @@ void processInput(GLFWwindow* window, std::vector<CuerpoCeleste*>& cuerpos, floa
     procesarTeclasEnfoque(window, cuerpos);
     procesarTeclaOrbitas(window);
     procesarTeclasVelocidad(window);
+    procesarTeclaLuz(window);
 }

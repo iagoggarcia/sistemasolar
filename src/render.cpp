@@ -11,6 +11,8 @@
 extern float deltaTime;
 extern float ultimoFrame;
 
+bool luzEncendida = true;
+
 GLFWwindow* inicializar() {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -51,11 +53,21 @@ void actualizarEstado(GLFWwindow* window, std::vector<CuerpoCeleste*>& cuerpos) 
     actualizarMovimiento(cuerpos, deltaTime, factorVelocidad);
 }
 
-void renderizar(std::vector<CuerpoCeleste*>& cuerpos, GLuint modelLoc, GLuint colorLoc, GLuint viewLoc, GLuint projectionLoc, GLFWwindow* window) {
+void renderizar(std::vector<CuerpoCeleste*>& cuerpos, GLuint modelLoc, GLuint objectColorLoc, GLuint viewLoc, GLuint projectionLoc, GLuint lightColorLoc, GLuint lightPosLoc, GLuint esSolLoc, GLuint luzEncendidaLoc, GLFWwindow* window) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     extern GLuint shaderProgram;
     glUseProgram(shaderProgram);
+
+    glUniform3f(lightColorLoc, 2.0f, 2.0f, 2.0f);
+
+    // la luz sale del Sol
+    glUniform3f(lightPosLoc,
+                cuerpos[0]->posicion[0],
+                cuerpos[0]->posicion[1],
+                cuerpos[0]->posicion[2]);
+
+    glUniform1i(luzEncendidaLoc, luzEncendida ? 1 : 0);
 
     glm::mat4 view = obtenerVista(cuerpos);
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
@@ -67,8 +79,8 @@ void renderizar(std::vector<CuerpoCeleste*>& cuerpos, GLuint modelLoc, GLuint co
     );
     glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-    if (mostrarOrbitas) dibujarOrbitas(cuerpos, modelLoc, colorLoc);
-    dibujarCuerpos(cuerpos, modelLoc, colorLoc);
+    if (mostrarOrbitas) dibujarOrbitas(cuerpos, modelLoc, objectColorLoc);
+    dibujarCuerpos(cuerpos, modelLoc, objectColorLoc, esSolLoc);
 }
 
 void limpiar(std::vector<CuerpoCeleste*>& cuerpos) {

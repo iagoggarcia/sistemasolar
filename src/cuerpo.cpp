@@ -9,7 +9,7 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-CuerpoCeleste* crearCuerpo(const char* nombre, float tamanho, float velTras, float velRot, float distancia, glm::vec3 color, GLuint VAO, CuerpoCeleste* padre) {
+CuerpoCeleste* crearCuerpo(const char* nombre, float tamanho, float velTras, float velRot, float distancia, float inclinacionOrbita, glm::vec3 color, GLuint VAO, CuerpoCeleste* padre) {
     CuerpoCeleste* cuerpo = (CuerpoCeleste*)malloc(sizeof(CuerpoCeleste));
 
     strcpy(cuerpo->nombre, nombre);
@@ -22,6 +22,8 @@ CuerpoCeleste* crearCuerpo(const char* nombre, float tamanho, float velTras, flo
 
     cuerpo->anguloTraslacion = 0.0f;
     cuerpo->anguloRotacion = 0.0f;
+
+    cuerpo->inclinacionOrbita = inclinacionOrbita;
 
     cuerpo->color = color;
     cuerpo->VAO = VAO;
@@ -58,15 +60,19 @@ void actualizarMovimiento(std::vector<CuerpoCeleste*>& cuerpos, float deltaTime,
         float ang = c->anguloTraslacion;
 
         if (c->padre == nullptr) {
-            // orbita el origen (sol)
-            c->posicion[0] = c->distanciaAlPadre * cos(ang);
-            c->posicion[1] = 0.0f;
-            c->posicion[2] = c->distanciaAlPadre * sin(ang);
+            float x = c->distanciaAlPadre * cos(ang);
+            float zBase = c->distanciaAlPadre * sin(ang);
+
+            c->posicion[0] = x;
+            c->posicion[1] = -zBase * sin(c->inclinacionOrbita);
+            c->posicion[2] = zBase * cos(c->inclinacionOrbita);
         } else {
-            // hereda la posición del padre
-            c->posicion[0] = c->padre->posicion[0] + c->distanciaAlPadre * cos(ang);
-            c->posicion[1] = c->padre->posicion[1];
-            c->posicion[2] = c->padre->posicion[2] + c->distanciaAlPadre * sin(ang);
+            float x = c->distanciaAlPadre * cos(ang);
+            float zBase = c->distanciaAlPadre * sin(ang);
+
+            c->posicion[0] = c->padre->posicion[0] + x;
+            c->posicion[1] = c->padre->posicion[1] - zBase * sin(c->inclinacionOrbita);
+            c->posicion[2] = c->padre->posicion[2] + zBase * cos(c->inclinacionOrbita);
         }
     }
 }
@@ -75,19 +81,18 @@ std::vector<CuerpoCeleste*> inicializarCuerpos(GLuint VAO_esfera) {
     std::vector<CuerpoCeleste*> cuerpos;
 
     // planetas (padre = nullptr)
-    CuerpoCeleste* sol      = crearCuerpo("Sol",      0.50f, 0.0f,  0.9f, 0.0f,  glm::vec3(1.0f, 0.8f, 0.0f), VAO_esfera, nullptr);
-    CuerpoCeleste* mercurio = crearCuerpo("Mercurio", 0.05f, 1.8f,  0.9f, 1.2f,  glm::vec3(0.6f, 0.6f, 0.6f), VAO_esfera, nullptr);
-    CuerpoCeleste* venus    = crearCuerpo("Venus",    0.08f, 1.4f,  0.9f, 1.8f,  glm::vec3(0.9f, 0.7f, 0.2f), VAO_esfera, nullptr);
-    CuerpoCeleste* tierra   = crearCuerpo("Tierra",   0.09f, 1.1f,  1.3f, 2.4f,  glm::vec3(0.2f, 0.4f, 1.0f), VAO_esfera, nullptr);
-    CuerpoCeleste* marte    = crearCuerpo("Marte",    0.07f, 0.9f,  1.3f, 3.0f,  glm::vec3(0.8f, 0.3f, 0.1f), VAO_esfera, nullptr);
-    CuerpoCeleste* jupiter  = crearCuerpo("Júpiter",  0.20f, 0.6f,  1.6f, 3.8f,  glm::vec3(0.8f, 0.6f, 0.4f), VAO_esfera, nullptr);
-    CuerpoCeleste* saturno  = crearCuerpo("Saturno",  0.17f, 0.45f, 1.6f, 4.7f,  glm::vec3(0.9f, 0.8f, 0.5f), VAO_esfera, nullptr);
-    CuerpoCeleste* urano    = crearCuerpo("Urano",    0.14f, 0.32f, 1.6f, 5.5f,  glm::vec3(0.5f, 0.8f, 1.0f), VAO_esfera, nullptr);
-    CuerpoCeleste* neptuno  = crearCuerpo("Neptuno",  0.14f, 0.24f, 1.6f, 6.3f,  glm::vec3(0.2f, 0.3f, 0.9f), VAO_esfera, nullptr);
+    CuerpoCeleste* sol = crearCuerpo("Sol",      0.50f, 0.0f,  0.9f, 0.0f,  0.0f, glm::vec3(1.0f, 0.8f, 0.0f), VAO_esfera, nullptr);
+    CuerpoCeleste* mercurio = crearCuerpo("Mercurio", 0.05f, 1.8f,  0.9f, 1.2f,  0.0f, glm::vec3(0.6f, 0.6f, 0.6f), VAO_esfera, nullptr);
+    CuerpoCeleste* venus = crearCuerpo("Venus",    0.08f, 1.4f,  0.9f, 1.8f,  0.0f, glm::vec3(0.9f, 0.7f, 0.2f), VAO_esfera, nullptr);
+    CuerpoCeleste* tierra = crearCuerpo("Tierra",   0.09f, 1.1f,  1.3f, 2.4f,  0.0f, glm::vec3(0.2f, 0.4f, 1.0f), VAO_esfera, nullptr);
+    CuerpoCeleste* marte = crearCuerpo("Marte",    0.07f, 0.9f,  1.3f, 3.0f,  0.0f, glm::vec3(0.8f, 0.3f, 0.1f), VAO_esfera, nullptr);
+    CuerpoCeleste* jupiter = crearCuerpo("Júpiter",  0.20f, 0.6f,  1.6f, 3.8f,  0.0f, glm::vec3(0.8f, 0.6f, 0.4f), VAO_esfera, nullptr);
+    CuerpoCeleste* saturno = crearCuerpo("Saturno",  0.17f, 0.45f, 1.6f, 4.7f,  0.0f, glm::vec3(0.9f, 0.8f, 0.5f), VAO_esfera, nullptr);
+    CuerpoCeleste* urano = crearCuerpo("Urano",    0.14f, 0.32f, 1.6f, 5.5f,  0.0f, glm::vec3(0.5f, 0.8f, 1.0f), VAO_esfera, nullptr);
+    CuerpoCeleste* neptuno = crearCuerpo("Neptuno",  0.14f, 0.24f, 1.6f, 6.3f,  0.0f, glm::vec3(0.2f, 0.3f, 0.9f), VAO_esfera, nullptr);
 
-    // satélites: le pasamos tierra como padre
-    CuerpoCeleste* luna = crearCuerpo("Luna", 0.03f, 2.2f, 0.9f, 0.22f, glm::vec3(0.75f, 0.75f, 0.75f), VAO_esfera, tierra);
-    CuerpoCeleste* iss  = crearCuerpo("ISS",  0.01f, 4.8f, 1.3f, 0.12f, glm::vec3(0.90f, 0.90f, 0.95f), VAO_esfera, tierra);
+    CuerpoCeleste* luna = crearCuerpo("Luna", 0.03f, 2.2f, 0.9f, 0.22f, 0.089f, glm::vec3(0.75f, 0.75f, 0.75f), VAO_esfera, tierra);
+    CuerpoCeleste* iss = crearCuerpo("ISS",  0.01f, 4.8f, 1.3f, 0.12f, 0.900f, glm::vec3(0.90f, 0.90f, 0.95f), VAO_esfera, tierra);
 
     cuerpos.push_back(sol);
     cuerpos.push_back(mercurio);
@@ -143,13 +148,12 @@ GLuint crearVAOorbita(float radio) {
     return VAO;
 }
 
-void dibujarOrbitas(std::vector<CuerpoCeleste*>& cuerpos, GLuint modelLoc, GLuint colorLoc) {
+void dibujarOrbitas(std::vector<CuerpoCeleste*>& cuerpos, GLuint modelLoc, GLuint objectColorLoc) {
     for (CuerpoCeleste* c : cuerpos) {
         if (c->distanciaAlPadre <= 0.0f) continue;
 
         glm::mat4 model = glm::mat4(1.0f);
 
-        // si tiene padre, centramos la órbita en él
         if (c->padre != nullptr) {
             model = glm::translate(model, glm::vec3(
                 c->padre->posicion[0],
@@ -158,16 +162,26 @@ void dibujarOrbitas(std::vector<CuerpoCeleste*>& cuerpos, GLuint modelLoc, GLuin
             ));
         }
 
+        model = glm::rotate(
+            model,
+            c->inclinacionOrbita,
+            glm::vec3(1.0f, 0.0f, 0.0f)
+        );
+
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
         glm::vec3 colorOrbita(0.7f, 0.7f, 0.7f);
-        glUniform3fv(colorLoc, 1, glm::value_ptr(colorOrbita));
+        glUniform3fv(objectColorLoc, 1, glm::value_ptr(colorOrbita));
 
         glBindVertexArray(c->VAOorbita);
+
+        extern GLuint shaderProgram;
+        GLuint esSolLoc = glGetUniformLocation(shaderProgram, "esSol");
+        glUniform1i(esSolLoc, 0);
         glDrawArrays(GL_LINE_LOOP, 0, c->numVerticesOrbita);
     }
 }
 
-void dibujarCuerpos(std::vector<CuerpoCeleste*>& cuerpos, GLuint modelLoc, GLuint colorLoc) {
+void dibujarCuerpos(std::vector<CuerpoCeleste*>& cuerpos, GLuint modelLoc, GLuint objectColorLoc, GLuint esSolLoc) {
     for (CuerpoCeleste* cuerpo : cuerpos)
     {
         // matriz modelo
@@ -194,7 +208,12 @@ void dibujarCuerpos(std::vector<CuerpoCeleste*>& cuerpos, GLuint modelLoc, GLuin
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
         // enviamos el color del cuerpo
-        glUniform3fv(colorLoc, 1, glm::value_ptr(cuerpo->color));
+        glUniform3fv(objectColorLoc, 1, glm::value_ptr(cuerpo->color));
+
+        if (strcmp(cuerpo->nombre, "Sol") == 0)
+            glUniform1i(esSolLoc, 1);
+        else
+            glUniform1i(esSolLoc, 0);
 
         // dibujar el cuerpo con los 1080 vértices de la esfera
         glBindVertexArray(cuerpo->VAO);

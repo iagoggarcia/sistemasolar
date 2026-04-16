@@ -9,6 +9,7 @@
 
 void cerrarVentanaSiEsc(GLFWwindow* window);
 
+void procesarTeclaLuz(GLFWwindow* window);
 void procesarTeclaOrbitas(GLFWwindow* window);
 void procesarTeclasVelocidad(GLFWwindow* window);
 void procesarMovimientoCamaraGeneral(GLFWwindow* window, float deltaTime);

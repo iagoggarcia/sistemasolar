@@ -32,9 +32,14 @@ int main() {
     shaderProgram = setShaders("shaders/shader.vert", "shaders/shader.frag");
 
     GLuint modelLoc = glGetUniformLocation(shaderProgram, "model");
-    GLuint colorLoc = glGetUniformLocation(shaderProgram, "color");
+
+    GLuint objectColorLoc = glGetUniformLocation(shaderProgram, "objectColor");
     GLuint viewLoc = glGetUniformLocation(shaderProgram, "view");
     GLuint projectionLoc = glGetUniformLocation(shaderProgram, "projection");
+    GLuint lightColorLoc = glGetUniformLocation(shaderProgram, "lightColor");
+    GLuint lightPosLoc = glGetUniformLocation(shaderProgram, "lightPos");
+    GLuint esSolLoc = glGetUniformLocation(shaderProgram, "esSol");
+    GLuint luzEncendidaLoc = glGetUniformLocation(shaderProgram, "luzEncendida");
 
     crearEsfera(VAO_esfera, VBO_esfera);
 
@@ -42,7 +47,7 @@ int main() {
 
     while (!glfwWindowShouldClose(window)) {
         actualizarEstado(window, cuerpos);
-        renderizar(cuerpos, modelLoc, colorLoc, viewLoc, projectionLoc, window);
+        renderizar(cuerpos, modelLoc, objectColorLoc, viewLoc, projectionLoc, lightColorLoc, lightPosLoc, esSolLoc, luzEncendidaLoc, window);
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
