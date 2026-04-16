@@ -18,6 +18,8 @@ extern bool vistaDesdeTierra;
 extern glm::vec3 posicionCamaraGeneral;
 extern glm::vec3 direccionCamaraGeneral;
 extern glm::vec3 upCamaraGeneral;
+extern bool mostrarOrbitas;
+extern float factorVelocidad;
 
 // Función que analiza qué teclas se tocan para ajustar la posición de la cámara y la vista
 void processInput(GLFWwindow* window, std::vector<Planeta*>& planetas, std::vector<Satelite*>& satelites, float deltaTime);

@@ -12,6 +12,12 @@ glm::vec3 posicionCamaraGeneral = glm::vec3(10.0f, 3.0f, 8.0f);
 glm::vec3 direccionCamaraGeneral = glm::normalize(glm::vec3(-10.0f, -3.0f, -8.0f));
 glm::vec3 upCamaraGeneral = glm::vec3(0.0f, 1.0f, 0.0f);
 
+bool mostrarOrbitas = true; // empezamos dibujándolas y luego si se toca la tecla '' se quitan
+bool teclaOPulsadaAntes = false; // si no metía esta variable daba parpadeos para pintar/despintar las órbitas
+
+float factorVelocidad = 1.0f; // para poder acelerar/disminuir la velocidad del sistema
+
+
 glm::mat4 obtenerVista(std::vector<Planeta*>& planetas, std::vector<Satelite*>& satelites) {
     glm::mat4 view;
 
@@ -193,5 +199,36 @@ void processInput(GLFWwindow* window, std::vector<Planeta*>& planetas, std::vect
         sateliteObjetivo = nullptr;
         vistaDesdeLuna = false;
         vistaDesdeTierra = true;
+    }
+
+    bool teclaOPulsadaAhora = (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS);
+
+    if (teclaOPulsadaAhora && !teclaOPulsadaAntes) {
+        mostrarOrbitas = !mostrarOrbitas;
+    }
+
+    teclaOPulsadaAntes = teclaOPulsadaAhora;
+
+    // Bloque para subir (tecla s) y bajar (tecla b) la velocidad
+    bool teclaSLibre = true;
+    bool teclaBLibre = true;
+
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS && teclaSLibre) {
+        factorVelocidad += 0.10f;
+        teclaSLibre = false;
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_RELEASE) {
+        teclaSLibre = true;
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS && teclaBLibre) {
+        factorVelocidad -= 0.10f;
+        if (factorVelocidad < 0.10f) factorVelocidad = 0.10f; // ponemos un límite para que no se pare
+        teclaBLibre = false;
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_B) == GLFW_RELEASE) {
+        teclaBLibre = true;
     }
 }

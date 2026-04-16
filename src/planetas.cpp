@@ -101,12 +101,12 @@ void dibujarPlanetas(std::vector<Planeta *> &planetas, GLuint modelLoc, GLuint c
     }
 }
 
-void actualizarMovimiento(std::vector<Planeta*>& planetas, float deltaTime)
+void actualizarMovimiento(std::vector<Planeta*>& planetas, float deltaTime, float factorVelocidad)
 {
     for (Planeta* planeta : planetas)
     {
-        planeta->anguloTraslacion += planeta->velocidadTraslacion * deltaTime;
-        planeta->anguloRotacion += planeta->velocidadRotacion * deltaTime;
+        planeta->anguloTraslacion += planeta->velocidadTraslacion * deltaTime * factorVelocidad;
+        planeta->anguloRotacion += planeta->velocidadRotacion * deltaTime * factorVelocidad;
 
         float ang = planeta->anguloTraslacion;
         planeta->posicion[0] = planeta->distanciaAlSol * cos(ang);

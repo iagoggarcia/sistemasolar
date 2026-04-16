@@ -97,7 +97,7 @@ int main() {
 
         processInput(window, planetas, satelites, deltaTime);
 
-        actualizarMovimiento(planetas, deltaTime);
+        actualizarMovimiento(planetas, deltaTime, factorVelocidad);
         actualizarMovimientoSat(satelites, planetas[3], deltaTime);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -119,7 +119,7 @@ int main() {
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
         glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-        dibujarOrbitas(planetas, modelLoc, colorLoc);
+        if (mostrarOrbitas) dibujarOrbitas(planetas, modelLoc, colorLoc);
         dibujarPlanetas(planetas, modelLoc, colorLoc);
         dibujarSatelites(satelites, modelLoc, colorLoc);
 
