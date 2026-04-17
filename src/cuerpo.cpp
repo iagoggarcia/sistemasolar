@@ -144,9 +144,6 @@ std::vector<CuerpoCeleste*> inicializarCuerpos(GLuint VAO_esfera) {
     tierra->multitextura = true;
 
     marte->textura1 = cargarTextura("texturas/marte.jpg");
-    marte->textura2 = cargarTextura("texturas/marte_detalle.jpg");
-    marte->multitextura = true;
-
     jupiter->textura1 = cargarTextura("texturas/jupiter.jpg");
     saturno->textura1 = cargarTextura("texturas/saturno.jpg");
     urano->textura1 = cargarTextura("texturas/urano.jpg");
