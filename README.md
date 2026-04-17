@@ -1,5 +1,7 @@
 # 🌌 Sistema Solar (COGA)
 
+![Sistema solar](ss.png)
+
 Este proyecto consiste en una simulación 3D del sistema solar desarrollada con OpenGL. En ella se representan el Sol, los planetas y algunos satélites, cada uno con su propio tamaño, rotación y traslación, permitiendo visualizar de forma sencilla el movimiento del sistema solar en 3D.
 
 ### 🎮 Controles
@@ -48,5 +50,3 @@ Las texturas utilizadas para los planetas y el fondo espacial han sido obtenidas
 https://www.solarsystemscope.com/textures/
 
 ---
-
-![Sistema solar](ss.png)
