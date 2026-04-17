@@ -1,4 +1,3 @@
-// render.cpp
 #include <glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/gtc/matrix_transform.hpp>
@@ -68,6 +67,11 @@ void renderizar(std::vector<CuerpoCeleste*>& cuerpos, GLuint modelLoc, GLuint ob
                 cuerpos[0]->posicion[2]);
 
     glUniform1i(luzEncendidaLoc, luzEncendida ? 1 : 0);
+
+    GLuint textura1Loc = glGetUniformLocation(shaderProgram, "texture1");
+    GLuint textura2Loc = glGetUniformLocation(shaderProgram, "texture2");
+    glUniform1i(textura1Loc, 0);
+    glUniform1i(textura2Loc, 1);
 
     glm::mat4 view = obtenerVista(cuerpos);
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));

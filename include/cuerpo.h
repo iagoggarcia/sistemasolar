@@ -24,6 +24,10 @@ struct CuerpoCeleste {
     int numVerticesOrbita;
     float inclinacionOrbita;
 
+    GLuint textura1;
+    GLuint textura2;
+    bool multitextura;
+
     CuerpoCeleste* padre; // va a ser nulo si orbita el sol
 };
 

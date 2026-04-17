@@ -2,12 +2,48 @@
 #include <stdlib.h>
 #include <string.h>
 #include <cmath>
+#include <iostream>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
+
+GLuint cargarTextura(const char* ruta) {
+    GLuint textura;
+    glGenTextures(1, &textura);
+    glBindTexture(GL_TEXTURE_2D, textura);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    int width, height, nrChannels;
+    stbi_set_flip_vertically_on_load(true);
+    unsigned char* data = stbi_load(ruta, &width, &height, &nrChannels, 0);
+
+    if (data) {
+        GLenum formato = GL_RGB;
+        if (nrChannels == 1) formato = GL_RED;
+        else if (nrChannels == 3) formato = GL_RGB;
+        else if (nrChannels == 4) formato = GL_RGBA;
+
+        glTexImage2D(GL_TEXTURE_2D, 0, formato, width, height, 0, formato, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    } else {
+        std::cout << "Error cargando textura: " << ruta << std::endl;
+    }
+
+    stbi_image_free(data);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    return textura;
+}
 
 CuerpoCeleste* crearCuerpo(const char* nombre, float tamanho, float velTras, float velRot, float distancia, float inclinacionOrbita, glm::vec3 color, GLuint VAO, CuerpoCeleste* padre) {
     CuerpoCeleste* cuerpo = (CuerpoCeleste*)malloc(sizeof(CuerpoCeleste));
@@ -28,6 +64,10 @@ CuerpoCeleste* crearCuerpo(const char* nombre, float tamanho, float velTras, flo
     cuerpo->color = color;
     cuerpo->VAO = VAO;
     cuerpo->padre = padre;
+
+    cuerpo->textura1 = 0;
+    cuerpo->textura2 = 0;
+    cuerpo->multitextura = false;
 
     // Posición inicial: si no tiene padre orbita el origen; si tiene, parte desde la posición del padre
     if (padre == nullptr) {
@@ -93,6 +133,25 @@ std::vector<CuerpoCeleste*> inicializarCuerpos(GLuint VAO_esfera) {
 
     CuerpoCeleste* luna = crearCuerpo("Luna", 0.03f, 2.2f, 0.9f, 0.22f, 0.089f, glm::vec3(0.75f, 0.75f, 0.75f), VAO_esfera, tierra);
     CuerpoCeleste* iss = crearCuerpo("ISS",  0.01f, 4.8f, 1.3f, 0.12f, 0.900f, glm::vec3(0.90f, 0.90f, 0.95f), VAO_esfera, tierra);
+
+    sol->textura1 = cargarTextura("texturas/sol.jpg");
+
+    mercurio->textura1 = cargarTextura("texturas/mercurio.jpg");
+    venus->textura1 = cargarTextura("texturas/venus.jpg");
+
+    tierra->textura1 = cargarTextura("texturas/tierra.jpg");
+    tierra->textura2 = cargarTextura("texturas/nubes_tierra.jpg");
+    tierra->multitextura = true;
+
+    marte->textura1 = cargarTextura("texturas/marte.jpg");
+    marte->textura2 = cargarTextura("texturas/marte_detalle.jpg");
+    marte->multitextura = true;
+
+    jupiter->textura1 = cargarTextura("texturas/jupiter.jpg");
+    saturno->textura1 = cargarTextura("texturas/saturno.jpg");
+    urano->textura1 = cargarTextura("texturas/urano.jpg");
+    neptuno->textura1 = cargarTextura("texturas/neptuno.jpg");
+    luna->textura1 = cargarTextura("texturas/luna.jpg");
 
     cuerpos.push_back(sol);
     cuerpos.push_back(mercurio);
@@ -172,16 +231,25 @@ void dibujarOrbitas(std::vector<CuerpoCeleste*>& cuerpos, GLuint modelLoc, GLuin
         glm::vec3 colorOrbita(0.7f, 0.7f, 0.7f);
         glUniform3fv(objectColorLoc, 1, glm::value_ptr(colorOrbita));
 
-        glBindVertexArray(c->VAOorbita);
-
         extern GLuint shaderProgram;
         GLuint esSolLoc = glGetUniformLocation(shaderProgram, "esSol");
+        GLuint usarTexturaLoc = glGetUniformLocation(shaderProgram, "usarTextura");
+        GLuint usarMultitexturaLoc = glGetUniformLocation(shaderProgram, "usarMultitextura");
+
         glUniform1i(esSolLoc, 0);
+        glUniform1i(usarTexturaLoc, 0);
+        glUniform1i(usarMultitexturaLoc, 0);
+
+        glBindVertexArray(c->VAOorbita);
         glDrawArrays(GL_LINE_LOOP, 0, c->numVerticesOrbita);
     }
 }
 
 void dibujarCuerpos(std::vector<CuerpoCeleste*>& cuerpos, GLuint modelLoc, GLuint objectColorLoc, GLuint esSolLoc) {
+    extern GLuint shaderProgram;
+    GLuint usarTexturaLoc = glGetUniformLocation(shaderProgram, "usarTextura");
+    GLuint usarMultitexturaLoc = glGetUniformLocation(shaderProgram, "usarMultitextura");
+
     for (CuerpoCeleste* cuerpo : cuerpos)
     {
         // matriz modelo
@@ -215,8 +283,37 @@ void dibujarCuerpos(std::vector<CuerpoCeleste*>& cuerpos, GLuint modelLoc, GLuin
         else
             glUniform1i(esSolLoc, 0);
 
+        if (cuerpo->textura1 != 0) {
+            glUniform1i(usarTexturaLoc, 1);
+
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, cuerpo->textura1);
+
+            if (cuerpo->multitextura && cuerpo->textura2 != 0) {
+                glUniform1i(usarMultitexturaLoc, 1);
+                glActiveTexture(GL_TEXTURE1);
+                glBindTexture(GL_TEXTURE_2D, cuerpo->textura2);
+            } else {
+                glUniform1i(usarMultitexturaLoc, 0);
+                glActiveTexture(GL_TEXTURE1);
+                glBindTexture(GL_TEXTURE_2D, 0);
+            }
+        } else {
+            glUniform1i(usarTexturaLoc, 0);
+            glUniform1i(usarMultitexturaLoc, 0);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, 0);
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, 0);
+        }
+
         // dibujar el cuerpo con los 1080 vértices de la esfera
         glBindVertexArray(cuerpo->VAO);
         glDrawArrays(GL_TRIANGLES, 0, 1080);
     }
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, 0);
 }
