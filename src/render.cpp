@@ -10,8 +10,13 @@
 extern float deltaTime;
 extern float ultimoFrame;
 
+// shader programs definidos en main.cpp
+extern GLuint shaderIluminacionProgram;
+extern GLuint shaderSimpleProgram;
+
 bool luzEncendida = true;
 
+// inicializa GLFW, GLAD y la ventana
 GLFWwindow* inicializar() {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -26,11 +31,14 @@ GLFWwindow* inicializar() {
     }
 
     glfwMakeContextCurrent(window);
-    glfwSwapInterval(1);
+    glfwSwapInterval(1); // sincroniza con el refresco de pantalla
+
+    // ajusta el viewport si cambia el tamaño de la ventana
     glfwSetFramebufferSizeCallback(window, [](GLFWwindow*, int w, int h) {
         glViewport(0, 0, w, h);
     });
 
+    // carga funciones de OpenGL
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         std::cout << "Error inicializando GLAD" << std::endl;
         return nullptr;
@@ -38,55 +46,94 @@ GLFWwindow* inicializar() {
 
     glClearDepth(1.0f);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_DEPTH_TEST); // activa el test de profundidad
 
     return window;
 }
 
+// actualiza tiempos y movimiento
 void actualizarEstado(GLFWwindow* window, std::vector<CuerpoCeleste*>& cuerpos) {
     float tiempoActual = glfwGetTime();
-    deltaTime   = tiempoActual - ultimoFrame;
+    deltaTime   = tiempoActual - ultimoFrame; // tiempo entre frames
     ultimoFrame = tiempoActual;
 
-    processInput(window, cuerpos, deltaTime);
-    actualizarMovimiento(cuerpos, deltaTime, factorVelocidad);
+    processInput(window, cuerpos, deltaTime); // procesa input usuario
+    actualizarMovimiento(cuerpos, deltaTime, factorVelocidad); // mueve planetas
 }
 
-void renderizar(std::vector<CuerpoCeleste*>& cuerpos, GLuint modelLoc, GLuint objectColorLoc, GLuint viewLoc, GLuint projectionLoc, GLuint lightColorLoc, GLuint lightPosLoc, GLuint esSolLoc, GLuint luzEncendidaLoc, GLFWwindow* window) {
+// renderiza toda la escena
+void renderizar(std::vector<CuerpoCeleste*>& cuerpos, GLFWwindow* window) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    extern GLuint shaderProgram;
-    glUseProgram(shaderProgram);
+    // matriz de vista (cámara)
+    glm::mat4 view = obtenerVista(cuerpos);
 
-    glUniform3f(lightColorLoc, 2.0f, 2.0f, 2.0f);
+    int w, h;
+    glfwGetFramebufferSize(window, &w, &h);
+    // matriz de proyección en perspectiva
+    glm::mat4 projection = glm::perspective(
+        glm::radians(60.0f),
+        (float)w / (float)h,
+        0.1f,
+        100.0f
+    );
 
-    // la luz sale del Sol
+    // dibuja órbitas con shader simple
+    if (mostrarOrbitas) {
+        glUseProgram(shaderSimpleProgram);
+
+        GLuint viewLoc       = glGetUniformLocation(shaderSimpleProgram, "view");
+        GLuint projectionLoc = glGetUniformLocation(shaderSimpleProgram, "projection");
+
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+        glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
+        dibujarOrbitas(cuerpos);
+    }
+
+    // usamos shader con iluminación para los cuerpos
+    glUseProgram(shaderIluminacionProgram);
+
+    GLuint viewLoc           = glGetUniformLocation(shaderIluminacionProgram, "view");
+    GLuint projectionLoc     = glGetUniformLocation(shaderIluminacionProgram, "projection");
+    GLuint lightColorLoc     = glGetUniformLocation(shaderIluminacionProgram, "lightColor");
+    GLuint lightPosLoc       = glGetUniformLocation(shaderIluminacionProgram, "lightPos");
+    GLuint luzEncendidaLoc   = glGetUniformLocation(shaderIluminacionProgram, "luzEncendida");
+    GLuint textura1Loc       = glGetUniformLocation(shaderIluminacionProgram, "texture1");
+    GLuint textura2Loc       = glGetUniformLocation(shaderIluminacionProgram, "texture2");
+    GLuint viewPosLoc        = glGetUniformLocation(shaderIluminacionProgram, "viewPos");
+
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+    glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
+    glUniform3f(lightColorLoc, 2.0f, 2.0f, 2.0f); // intensidad de la luz
+
+    // la luz está en el Sol (primer cuerpo)
     glUniform3f(lightPosLoc,
                 cuerpos[0]->posicion[0],
                 cuerpos[0]->posicion[1],
                 cuerpos[0]->posicion[2]);
 
-    glUniform1i(luzEncendidaLoc, luzEncendida ? 1 : 0);
+    glUniform1i(luzEncendidaLoc, luzEncendida ? 1 : 0); // encender/apagar luz
 
-    GLuint textura1Loc = glGetUniformLocation(shaderProgram, "texture1");
-    GLuint textura2Loc = glGetUniformLocation(shaderProgram, "texture2");
     glUniform1i(textura1Loc, 0);
     glUniform1i(textura2Loc, 1);
 
-    glm::mat4 view = obtenerVista(cuerpos);
-    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+    // calcula posición de cámara para iluminación especular
+    glm::vec3 cameraPos;
+    if (cuerpoObjetivo != nullptr) {
+        glm::vec3 target = obtenerTargetActual();
+        cameraPos = obtenerPosicionCamaraActual(cuerpos, target);
+    } else {
+        cameraPos = posicionCamaraGeneral;
+    }
 
-    int w, h;
-    glfwGetFramebufferSize(window, &w, &h);
-    glm::mat4 projection = glm::perspective(
-        glm::radians(60.0f), (float)w / (float)h, 0.1f, 100.0f
-    );
-    glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+    glUniform3f(viewPosLoc, cameraPos.x, cameraPos.y, cameraPos.z);
 
-    if (mostrarOrbitas) dibujarOrbitas(cuerpos, modelLoc, objectColorLoc);
-    dibujarCuerpos(cuerpos, modelLoc, objectColorLoc, esSolLoc);
+    dibujarCuerpos(cuerpos); // dibuja planetas
 }
 
+// libera memoria y termina GLFW
 void limpiar(std::vector<CuerpoCeleste*>& cuerpos) {
     for (CuerpoCeleste* c : cuerpos) free(c);
     glfwTerminate();

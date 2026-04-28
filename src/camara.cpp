@@ -17,9 +17,12 @@ glm::vec3 direccionCamaraGeneral = glm::normalize(glm::vec3(-10.0f, -3.0f, -8.0f
 glm::vec3 upCamaraGeneral = glm::vec3(0.0f, 1.0f, 0.0f);
 
 // estado global de la escena controlado desde la entrada
-bool mostrarOrbitas = true; // empezamos dibujándolas y luego si se toca la tecla '' se quitan
-bool teclaOPulsadaAntes = false; // si no metía esta variable daba parpadeos para pintar/despintar las órbitas
-float factorVelocidad = 1.0f; // para poder acelerar/disminuir la velocidad del sistema
+bool mostrarOrbitas = true; // empezamos dibujándolas y luego si se toca la tecla 'o' se quitan
+bool teclaOPulsadaAntes = false; // empezamos con esta variable en false para controlar las órbitas y evitar parpadeos
+
+float factorVelocidad = 1.0f; // variable para poder acelerar/disminuir la velocidad del sistema
+
+// ------ Obtención de la posición de cámaras y objetivos ------
 
 glm::vec3 obtenerTargetActual() {
     return glm::vec3(
@@ -50,9 +53,9 @@ glm::vec3 obtenerPosicionCamaraActual(std::vector<CuerpoCeleste*>& cuerpos, glm:
 }
 
 glm::mat4 obtenerVista(std::vector<CuerpoCeleste*>& cuerpos) {
-    if (cuerpoObjetivo != nullptr) {
-        glm::vec3 target = obtenerTargetActual();
-        glm::vec3 cameraPos = obtenerPosicionCamaraActual(cuerpos, target);
+    if (cuerpoObjetivo != nullptr) { // si hay un objetivo
+        glm::vec3 target = obtenerTargetActual(); // obtenemos su posición
+        glm::vec3 cameraPos = obtenerPosicionCamaraActual(cuerpos, target); // y desde dónde se mira
 
         return glm::lookAt(cameraPos, target, glm::vec3(0.0f, 1.0f, 0.0f));
     }
@@ -63,6 +66,8 @@ glm::mat4 obtenerVista(std::vector<CuerpoCeleste*>& cuerpos) {
         upCamaraGeneral
     );
 }
+
+// ------ Enfoques fijos a planetas que se escogen con las teclas ------
 
 void enfocarMarte(std::vector<CuerpoCeleste*>& cuerpos) {
     cuerpoObjetivo = cuerpos[4];
@@ -101,6 +106,9 @@ void enfocarSateliteDesdeTierra(CuerpoCeleste* cuerpo) {
     vistaDesdeLuna = false;
     vistaDesdeTierra = true;
 }
+// --------------------------------------------------------------------------
+
+// ------ Movimiento de la cámara libre por el espacio ------ 
 
 void avanzarCamaraGeneral(float deltaTime) {
     float velocidadMovimiento = 6.0f * deltaTime;
@@ -149,3 +157,4 @@ void girarCamaraGeneralDerecha(float deltaTime) {
         glm::vec3(rot * glm::vec4(direccionCamaraGeneral, 0.0f))
     );
 }
+// -------------------------------------------------------------------------

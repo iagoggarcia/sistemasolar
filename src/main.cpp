@@ -18,7 +18,12 @@ float deltaTime   = 0.0f;
 float ultimoFrame = 0.0f;
 
 extern GLuint setShaders(const char* nVertx, const char* nFrag);
-GLuint shaderProgram;
+
+// utilizamos dos shaders distintos: uno para la iluminación y texturas, y otro para dibujar las esferas
+// y las órbitas
+GLuint shaderIluminacionProgram;
+GLuint shaderSimpleProgram;
+
 GLuint VAO_esfera, VBO_esfera;
 
 void reescalarVentana(GLFWwindow*, int w, int h) {
@@ -29,29 +34,22 @@ int main() {
     GLFWwindow* window = inicializar();
     if (!window) return -1;
 
-    shaderProgram = setShaders("shaders/shader.vert", "shaders/shader.frag");
-
-    GLuint modelLoc = glGetUniformLocation(shaderProgram, "model");
-
-    GLuint objectColorLoc = glGetUniformLocation(shaderProgram, "objectColor");
-    GLuint viewLoc = glGetUniformLocation(shaderProgram, "view");
-    GLuint projectionLoc = glGetUniformLocation(shaderProgram, "projection");
-    GLuint lightColorLoc = glGetUniformLocation(shaderProgram, "lightColor");
-    GLuint lightPosLoc = glGetUniformLocation(shaderProgram, "lightPos");
-    GLuint esSolLoc = glGetUniformLocation(shaderProgram, "esSol");
-    GLuint luzEncendidaLoc = glGetUniformLocation(shaderProgram, "luzEncendida");
+    // asignamos los shaders para usarlos donde haga falta en las funciones
+    shaderIluminacionProgram = setShaders("shaders/iluminacion.vert", "shaders/iluminacion.frag");
+    shaderSimpleProgram      = setShaders("shaders/simple.vert", "shaders/simple.frag");
 
     crearEsfera(VAO_esfera, VBO_esfera);
 
+    // generamos el vector con los cuerpos (planetas, luna e ISS) con todos sus datos en un struct
     std::vector<CuerpoCeleste*> cuerpos = inicializarCuerpos(VAO_esfera);
 
-    while (!glfwWindowShouldClose(window)) {
+    while (!glfwWindowShouldClose(window)) { // mientras no cerremos la ventana (con 'esc')
         actualizarEstado(window, cuerpos);
-        renderizar(cuerpos, modelLoc, objectColorLoc, viewLoc, projectionLoc, lightColorLoc, lightPosLoc, esSolLoc, luzEncendidaLoc, window);
+        renderizar(cuerpos, window);
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
-    limpiar(cuerpos);
+    limpiar(cuerpos); // liberamos los struct de todos los planetas cuando salgamos del programa
     return 0;
 }
