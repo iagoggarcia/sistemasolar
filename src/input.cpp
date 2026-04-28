@@ -11,18 +11,23 @@ void cerrarVentanaSiEsc(GLFWwindow* window) {
 }
 
 void procesarTeclaLuz(GLFWwindow* window) {
+    // comprobamos si la I está pulsada en este instante:
     bool teclaIPulsadaAhora = (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS);
 
+    // Solo cambiamos el estado de la luz cuando la tecla pasa de no pulsada a pulsada (así evitamos que se active y desactive continuamente mientras se mantiene pulsada)
     if (teclaIPulsadaAhora && !teclaIPulsadaAntes) {
         luzEncendida = !luzEncendida;
     }
 
+    // guardamos el estado actual de la tecla para compararlo en el siguiente frame
     teclaIPulsadaAntes = teclaIPulsadaAhora;
 }
 
 void procesarTeclaOrbitas(GLFWwindow* window) {
+    // miramos si la tecla pulsada en este instante es la "o"
     bool teclaOPulsadaAhora = (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS);
 
+    // Cambiamos el estado de las órbitas (dibujadas o no) cuando la tecla pasa de no pulsada a pulsada
     if (teclaOPulsadaAhora && !teclaOPulsadaAntes) {
         mostrarOrbitas = !mostrarOrbitas;
     }
@@ -34,15 +39,18 @@ void procesarTeclasVelocidad(GLFWwindow* window) {
     static bool teclaSLibre = true;
     static bool teclaBLibre = true;
 
+    // si se pulsa la "S" se aumenta la velocidad
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS && teclaSLibre) {
         factorVelocidad += 0.25f;
         teclaSLibre = false;
     }
 
+    // cuando se suelta la "S" la dejamos libre, así no hay problemas si se mantiene
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_RELEASE) {
         teclaSLibre = true;
     }
 
+    // si se pulsa la "B" se reduce la velocidad hasta un máximo (para evitar que se pare del todo)
     if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS && teclaBLibre) {
         factorVelocidad -= 0.25f;
         if (factorVelocidad < 0.10f)
@@ -51,6 +59,7 @@ void procesarTeclasVelocidad(GLFWwindow* window) {
         teclaBLibre = false;
     }
 
+    // cuando se suelta la "B" la dejamos libre, así no hay problemas si se mantiene
     if (glfwGetKey(window, GLFW_KEY_B) == GLFW_RELEASE) {
         teclaBLibre = true;
     }

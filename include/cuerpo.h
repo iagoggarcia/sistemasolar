@@ -9,7 +9,7 @@ struct CuerpoCeleste {
     char nombre[20];
     float tamanho;
 
-    float distanciaAlPadre; // antes era distanciaAlSol o distanciaTierra
+    float distanciaAlPadre;
     float velocidadTraslacion;
     float velocidadRotacion;
 
@@ -28,7 +28,7 @@ struct CuerpoCeleste {
     GLuint textura2;
     bool multitextura;
 
-    CuerpoCeleste* padre; // va a ser nulo si orbita el sol
+    CuerpoCeleste* padre;
 };
 
 void actualizarMovimiento(std::vector<CuerpoCeleste*>& cuerpos, float deltaTime, float factorVelocidad);
@@ -36,7 +36,9 @@ std::vector<CuerpoCeleste*> inicializarCuerpos(GLuint VAO_esfera);
 CuerpoCeleste* crearCuerpo(const char* nombre, float tamanho, float velTras, float velRot, float distancia, float inclinacionOrbita, glm::vec3 color, GLuint VAO, CuerpoCeleste* padre);
 std::vector<float> crearVerticesOrbita(float radio);
 GLuint crearVAOorbita(float radio);
-void dibujarOrbitas(std::vector<CuerpoCeleste*>& cuerpos, GLuint modelLoc, GLuint objectColorLoc);
-void dibujarCuerpos(std::vector<CuerpoCeleste*>& cuerpos, GLuint modelLoc, GLuint objectColorLoc, GLuint esSolLoc);
+
+// CAMBIO IMPORTANTE: ya no reciben uniforms desde fuera
+void dibujarOrbitas(std::vector<CuerpoCeleste*>& cuerpos);
+void dibujarCuerpos(std::vector<CuerpoCeleste*>& cuerpos);
 
 #endif
